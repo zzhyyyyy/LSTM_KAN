@@ -1,0 +1,102 @@
+{
+  "model_name": "LSTM_KAN",
+  "targets_top_first": [
+    "Algae_Sum",
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "recon_from_model": [
+    4,
+    0,
+    1,
+    2,
+    3
+  ],
+  "mlp_hyperparameters": {
+    "hidden_dim": 64,
+    "num_layers": 2,
+    "dropout": 0.0,
+    "lr": 0.001
+  },
+  "joint_batch_size": 32,
+  "base_best_info": {
+    "model_name": "LSTM_KAN",
+    "model_display": "LSTM-KAN",
+    "target_names": [
+      "Green_Algae",
+      "Cyanobacteria",
+      "Diatoms",
+      "Cryptophyta",
+      "Algae_Sum"
+    ],
+    "target_cols": [
+      "Green_Algae",
+      "Cyanobacteria",
+      "Diatoms",
+      "Cryptophyta",
+      "Algae_Sum"
+    ],
+    "feature_cols": [
+      "Green_Algae",
+      "Cyanobacteria",
+      "Diatoms",
+      "Cryptophyta",
+      "pH",
+      "Turbidity",
+      "WT",
+      "precipitation",
+      "DIN",
+      "DIP",
+      "TN",
+      "TP",
+      "NPR"
+    ],
+    "horizons": [
+      1,
+      2,
+      3
+    ],
+    "best_hyperparameters": {
+      "lookback": 30,
+      "num_layers": 1,
+      "hidden_dim": 256,
+      "kan_hidden_dim": 128,
+      "grid_size": 5,
+      "spline_order": 3,
+      "lr": 0.003,
+      "dropout": 0.0,
+      "batch_size": 32,
+      "weight_decay": 0.0
+    },
+    "best_epoch": 3,
+    "best_validation_val_loss": 0.20180449457395644,
+    "best_validation_mean_nRMSE": 0.6561503600160513,
+    "best_validation_mean_nMAE": 0.515560935276777,
+    "best_validation_mean_NSE": 0.06510303133351773,
+    "best_validation_mean_KGE": 0.4073999831439268,
+    "best_validation_per_horizon_nRMSE": {
+      "h1": 0.5291126585474386,
+      "h2": 0.670673675642432,
+      "h3": 0.7686647458582836
+    },
+    "best_validation_per_target_nRMSE": {
+      "Green_Algae": 0.8457540352087598,
+      "Cyanobacteria": 0.36575689318023336,
+      "Diatoms": 1.0684133310311388,
+      "Cryptophyta": 0.5678781222464467,
+      "Algae_Sum": 0.4329494184136784
+    }
+  },
+  "best_epoch": 139,
+  "validation_mean_nRMSE": 0.6539759022521291,
+  "validation_D1_mean_abs": 0.09938151637713115,
+  "validation_D2_mean_abs": 0.0,
+  "validation_consistency_improvement_mean_pct": 100.0
+}

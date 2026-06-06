@@ -1,0 +1,14 @@
+numpy==2.1.2
+pandas==2.3.3
+torch==2.6.0
+scikit-learn==1.7.2
+matplotlib==3.10.8
+seaborn==0.13.2
+statsmodels==0.14.6
+efficient-kan==0.1.0
+
+# R scripts additionally use: ggplot2, scales, tidyverse
+
+#入远程电脑新建环境：conda activate algae_forecast
+
+#Ctrl + Shift + P选择解释器algae_forecast

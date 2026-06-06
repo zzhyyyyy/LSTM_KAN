@@ -1,0 +1,66 @@
+{
+  "model_name": "KAN",
+  "model_display": "KAN",
+  "target_names": [
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta",
+    "Algae_Sum"
+  ],
+  "target_cols": [
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta",
+    "Algae_Sum"
+  ],
+  "feature_cols": [
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta",
+    "pH",
+    "Turbidity",
+    "WT",
+    "precipitation",
+    "DIN",
+    "DIP",
+    "TN",
+    "TP",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "kan_hidden_dim": 32,
+    "grid_size": 7,
+    "spline_order": 3,
+    "lr": 0.002,
+    "dropout": 0.0,
+    "batch_size": 64,
+    "weight_decay": 0.0
+  },
+  "best_epoch": 2,
+  "best_validation_val_loss": 0.3019848125321524,
+  "best_validation_mean_nRMSE": 0.8138479870041148,
+  "best_validation_mean_nMAE": 0.6458046839652709,
+  "best_validation_mean_NSE": -0.3548910100938493,
+  "best_validation_mean_KGE": 0.04233981023128656,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.8029351279425845,
+    "h2": 0.8266066535910255,
+    "h3": 0.8120021794787344
+  },
+  "best_validation_per_target_nRMSE": {
+    "Green_Algae": 1.1640480487066462,
+    "Cyanobacteria": 0.49028486170833324,
+    "Diatoms": 1.2828942429779262,
+    "Cryptophyta": 0.6428715576363686,
+    "Algae_Sum": 0.4891412239912997
+  }
+}
