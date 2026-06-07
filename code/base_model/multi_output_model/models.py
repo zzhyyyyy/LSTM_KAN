@@ -46,6 +46,10 @@ USE_LOG = True
 TARGET_MAP_TRAIN = TARGET_MAP_LOG if USE_LOG else TARGET_MAP_RAW
 TARGET_TRAIN_COLS = [TARGET_MAP_TRAIN[name] for name in TARGET_COLS_ORDER]
 
+# 输入特征是否也用 log（独立于目标的 USE_LOG）。
+# True: 用 get_log_feature_cols（对偏态输入做 log1p）；False: get_raw_feature_cols（输入全原始）。
+LOG_INPUTS = True
+
 # SHAP 去自身特征用：原始尺度下目标的“自身特征”就是同名原始列。
 # 四个底层藻同名列在输入中（会被剔除）；Algae_Sum 不在输入特征中，匹配不到、无影响。
 SELF_FEATURE_MAP = {name: name for name in TARGET_COLS_ORDER}

@@ -34,6 +34,7 @@ from common.train_utils import make_loader, train_one_model  # noqa: E402
 from models import HORIZONS, KAN, MODEL_DISPLAY, TARGET_TRAIN_COLS, TARGET_COLS_ORDER, build_model  # noqa: E402
 from grid_search_multi_output import (  # noqa: E402
     DATA_DIR,
+    FEATURE_COLS_FN,
     LOOKBACK,
     MODELS_TO_RUN,
     PARAM_COLUMNS,
@@ -80,7 +81,7 @@ def main() -> None:
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
-    feature_cols = get_raw_feature_cols(train_df, date_col)
+    feature_cols = FEATURE_COLS_FN(train_df, date_col)
     data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_TRAIN_COLS, LOOKBACK, HORIZONS, date_col)
     output_dim = data["train"]["y"].shape[1]
     print(f"Data: {data_dir} | device={device} | raw features={len(feature_cols)} | "

@@ -36,6 +36,7 @@ from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, save_loss_history, train_one_model  # noqa: E402
 from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_TRAIN_COLS, TARGET_COLS_ORDER, build_model  # noqa: E402
 from grid_search_multi_output import (  # noqa: E402
+    FEATURE_COLS_FN,
     METRIC_COLUMNS,
     PARAM_COLUMNS,
     agg_mean,
@@ -165,7 +166,7 @@ def main() -> None:
     ensure_output_dirs()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
-    feature_cols = get_raw_feature_cols(train_df, date_col)
+    feature_cols = FEATURE_COLS_FN(train_df, date_col)
     data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_TRAIN_COLS, LOOKBACK, HORIZONS, date_col)
     output_dim = data["train"]["y"].shape[1]
     input_dim = data["train"]["X"].shape[1] * data["train"]["X"].shape[2]  # 展平

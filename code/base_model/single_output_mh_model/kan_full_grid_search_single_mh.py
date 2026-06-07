@@ -37,6 +37,7 @@ from common.train_utils import make_loader, save_loss_history, train_one_model  
 from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, build_model  # noqa: E402
 from kan_full_grid_search_multi import BASELINE as KAN_BASELINE, PARAM_ORDER as KAN_PARAM_ORDER  # noqa: E402
 from grid_search_single_mh import (  # noqa: E402
+    FEATURE_COLS_FN,
     PARAM_COLUMNS,
     agg,
     evaluate_split,
@@ -144,7 +145,7 @@ def main():
     ensure_output_dirs()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
-    feature_cols = get_raw_feature_cols(train_df, date_col)
+    feature_cols = FEATURE_COLS_FN(train_df, date_col)
     output_dim = len(HORIZONS)
     print(f"Data: {actual_data_dir} | device={device} | raw features={len(feature_cols)} | "
           f"targets={len(TARGETS)} | horizons={HORIZONS} | smoke={SMOKE}", flush=True)

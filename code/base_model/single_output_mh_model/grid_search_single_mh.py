@@ -42,9 +42,9 @@ from common.metrics_utils import compute_metrics  # noqa: E402
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, predict_scaled_multi, save_loss_history, train_one_model  # noqa: E402
 from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, USE_LOG, build_model  # noqa: E402
-from grid_search_multi_output import BASELINES, PARAM_ORDER, PARAM_COLUMNS  # noqa: E402
+from grid_search_multi_output import BASELINES, PARAM_ORDER, PARAM_COLUMNS, FEATURE_COLS_FN  # noqa: E402
 
-# 方案A：输入特征始终原始；USE_LOG 只切换“目标 log1p + expm1 反变换”。
+# USE_LOG 控制目标 log1p+expm1；FEATURE_COLS_FN（由 models.LOG_INPUTS 决定）控制输入是否 log。
 INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
 
 
@@ -229,7 +229,7 @@ def main():
         raise ImportError("efficient-kan is required before running LSTM-KAN.")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
-    feature_cols = get_raw_feature_cols(train_df, date_col)
+    feature_cols = FEATURE_COLS_FN(train_df, date_col)
     output_dim = len(HORIZONS)
     print(f"Data: {actual_data_dir} | device={device} | raw features={len(feature_cols)} | "
           f"targets={len(TARGETS)} | horizons={HORIZONS} | output_dim/model={output_dim} | smoke={SMOKE}", flush=True)

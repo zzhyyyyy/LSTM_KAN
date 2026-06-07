@@ -34,6 +34,7 @@ if str(SCRIPT_DIR) not in sys.path:
 from common.data_utils import (  # noqa: E402
     append_csv_row,
     ensure_dir,
+    get_log_feature_cols,
     get_raw_feature_cols,
     inverse_log_targets,
     inverse_targets,
@@ -46,6 +47,7 @@ from common.train_utils import make_loader, predict_scaled_multi, save_loss_hist
 from models import (  # noqa: E402
     HORIZONS,
     KAN,
+    LOG_INPUTS,
     MODEL_DISPLAY,
     MODEL_STEM,
     TARGET_COLS_ORDER,
@@ -54,8 +56,9 @@ from models import (  # noqa: E402
     build_model,
 )
 
-# 方案A：输入特征始终原始尺度；USE_LOG 只切换“目标 log1p + expm1 反变换”，协调仍在原始尺度。
+# 尺度选择器：USE_LOG 控制目标 log1p+expm1；LOG_INPUTS 控制输入是否 log。协调/指标都在原始尺度。
 INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
+FEATURE_COLS_FN = get_log_feature_cols if LOG_INPUTS else get_raw_feature_cols
 
 
 DATA_DIR = BASE_DIR / "data"
@@ -349,7 +352,7 @@ def main() -> None:
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
-    feature_cols = get_raw_feature_cols(train_df, date_col)
+    feature_cols = FEATURE_COLS_FN(train_df, date_col)
     data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_TRAIN_COLS, LOOKBACK, HORIZONS, date_col)
     output_dim = data["train"]["y"].shape[1]  # H*K
     print(f"Data: {actual_data_dir} | device={device} | raw features={len(feature_cols)} | "
