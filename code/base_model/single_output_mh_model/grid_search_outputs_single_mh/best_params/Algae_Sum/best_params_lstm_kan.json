@@ -4,18 +4,18 @@
   "model_name": "LSTM_KAN",
   "model_display": "LSTM-KAN",
   "feature_cols": [
-    "Green_Algae",
-    "Cyanobacteria",
-    "Diatoms",
-    "Cryptophyta",
+    "log_Green_Algae",
+    "log_Cyanobacteria",
+    "log_Diatoms",
+    "log_Cryptophyta",
+    "log_Turbidity",
+    "log_DIP",
+    "log_TP",
+    "log_precipitation",
     "pH",
-    "Turbidity",
     "WT",
-    "precipitation",
     "DIN",
-    "DIP",
     "TN",
-    "TP",
     "NPR"
   ],
   "horizons": [
@@ -25,22 +25,22 @@
   ],
   "best_hyperparameters": {
     "lookback": 30,
-    "num_layers": 2,
+    "num_layers": 1,
     "hidden_dim": 256,
-    "kan_hidden_dim": 32,
+    "kan_hidden_dim": 64,
     "grid_size": 5,
-    "spline_order": 3,
+    "spline_order": 2,
     "lr": 0.002,
     "dropout": 0.0,
     "batch_size": 64,
     "weight_decay": 0.0
   },
   "best_epoch": 4,
-  "best_validation_val_loss": 0.31942117781866164,
-  "best_validation_mean_nRMSE": 0.3528934245562836,
+  "best_validation_val_loss": 0.320571984563555,
+  "best_validation_mean_nRMSE": 0.3484195392159546,
   "best_validation_per_horizon_nRMSE": {
-    "h1": 0.2865971497793328,
-    "h2": 0.3606075503799027,
-    "h3": 0.4114755735096151
+    "h1": 0.2740505864250622,
+    "h2": 0.3569935878396432,
+    "h3": 0.4142144433831583
   }
 }
