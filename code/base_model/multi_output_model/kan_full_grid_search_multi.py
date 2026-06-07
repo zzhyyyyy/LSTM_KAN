@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from itertools import product
 from pathlib import Path
 
 import numpy as np
@@ -34,7 +35,7 @@ from common.data_utils import (  # noqa: E402
 )
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, save_loss_history, train_one_model  # noqa: E402
-from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_TRAIN_COLS, TARGET_COLS_ORDER, build_model  # noqa: E402
+from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, SEARCH_METHOD, TARGET_TRAIN_COLS, TARGET_COLS_ORDER, build_model  # noqa: E402
 from grid_search_multi_output import (  # noqa: E402
     FEATURE_COLS_FN,
     METRIC_COLUMNS,
@@ -75,6 +76,15 @@ PARAM_ORDER = [
     ("batch_size", [32, 64]),
     ("weight_decay", [0.0, 1e-4]),
 ]
+# 小范围网格（SEARCH_METHOD="grid"）：2×2×2=8 组，其余固定在 BASELINE。
+GRID_SMALL = {"kan_hidden_dim": [32, 64], "grid_size": [3, 5], "lr": [0.001, 0.002]}
+
+
+def grid_combos() -> list[dict]:
+    if SMOKE:
+        return [dict(BASELINE)]
+    keys = list(GRID_SMALL.keys())
+    return [{**BASELINE, **dict(zip(keys, vals))} for vals in product(*(GRID_SMALL[k] for k in keys))]
 
 PER_HORIZON_NRMSE_COLS = [f"val_nRMSE_h{h}" for h in HORIZONS]
 PER_TARGET_NRMSE_COLS = [f"val_nRMSE_{name}" for name in TARGET_COLS_ORDER]
@@ -143,6 +153,20 @@ def coordinate_descent(data, input_dim, output_dim, device):
         cache[k] = result
         return result
 
+    # === 网格搜索（小范围穷举）===
+    if SEARCH_METHOD == "grid":
+        combos = grid_combos()
+        best = None
+        for combo in combos:
+            res = evaluate(combo, "grid")
+            if best is None or res["mean_nrmse"] < best["mean_nrmse"] - 1e-9 or (
+                abs(res["mean_nrmse"] - best["mean_nrmse"]) <= 1e-9 and res["val_loss"] < best["val_loss"]):
+                best = res
+            print(f"[KAN] grid {len(cache)}/{len(combos)} | val mean nRMSE={metric_text(res['mean_nrmse'])} | "
+                  f"best={metric_text(best['mean_nrmse'])}", flush=True)
+        return best
+
+    # === 分步坐标下降 ===
     current = dict(BASELINE)
     base_res = evaluate(current, "baseline")
     print(f"[KAN] baseline val mean nRMSE={metric_text(base_res['mean_nrmse'])}", flush=True)

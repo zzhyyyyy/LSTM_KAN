@@ -34,8 +34,8 @@ from common.data_utils import (  # noqa: E402
 )
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, save_loss_history, train_one_model  # noqa: E402
-from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, build_model  # noqa: E402
-from kan_full_grid_search_multi import BASELINE as KAN_BASELINE, PARAM_ORDER as KAN_PARAM_ORDER  # noqa: E402
+from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, SEARCH_METHOD, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, build_model  # noqa: E402
+from kan_full_grid_search_multi import BASELINE as KAN_BASELINE, PARAM_ORDER as KAN_PARAM_ORDER, grid_combos as kan_grid_combos  # noqa: E402
 from grid_search_single_mh import (  # noqa: E402
     FEATURE_COLS_FN,
     PARAM_COLUMNS,
@@ -123,6 +123,18 @@ def coordinate_descent(target, data, input_dim, output_dim, device):
         cache[k] = res
         return res
 
+    # === 网格搜索（小范围穷举）===
+    if SEARCH_METHOD == "grid":
+        combos = kan_grid_combos()
+        best = None
+        for combo in combos:
+            res = evaluate(combo, "grid")
+            if best is None or res["mean_nrmse"] < best["mean_nrmse"] - 1e-9 or (
+                abs(res["mean_nrmse"] - best["mean_nrmse"]) <= 1e-9 and res["val_loss"] < best["val_loss"]):
+                best = res
+        return best
+
+    # === 分步坐标下降 ===
     current = dict(KAN_BASELINE)
     best = evaluate(current, "baseline")
     for pname, candidates in param_order:

@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from itertools import product
 from pathlib import Path
 
 import numpy as np
@@ -50,6 +51,7 @@ from models import (  # noqa: E402
     LOG_INPUTS,
     MODEL_DISPLAY,
     MODEL_STEM,
+    SEARCH_METHOD,
     TARGET_COLS_ORDER,
     TARGET_TRAIN_COLS,
     USE_LOG,
@@ -118,6 +120,25 @@ PARAM_ORDER = {
         ("weight_decay", [0.0, 1e-4]),
     ],
 }
+
+# 小范围网格（SEARCH_METHOD="grid"）：只网格"层数/隐藏维/学习率"等关键超参，其余固定在 BASELINES。
+# 每个架构 2×2×2=8 组，控制规模。其余超参（dropout/batch/weight_decay/mlp_*/kan_hidden/spline）取基线值。
+GRID_SMALL = {
+    "LSTM_FC": {"num_layers": [1, 2], "hidden_dim": [128, 256], "lr": [0.001, 0.002]},
+    "LSTM_MLP": {"num_layers": [1, 2], "hidden_dim": [128, 256], "lr": [0.001, 0.002]},
+    "LSTM_KAN": {"num_layers": [1, 2], "grid_size": [3, 5], "lr": [0.001, 0.002]},
+}
+
+
+def grid_combos(model_name: str) -> list[dict]:
+    """返回小网格的完整参数组合列表（网格参数 × 其余取基线）。SMOKE 时只留基线一组。"""
+    base = BASELINES[model_name]
+    if SMOKE:
+        return [dict(base)]
+    grid = GRID_SMALL[model_name]
+    keys = list(grid.keys())
+    return [{**base, **dict(zip(keys, vals))} for vals in product(*(grid[k] for k in keys))]
+
 
 PARAM_COLUMNS = [
     "lookback", "num_layers", "hidden_dim", "dropout", "lr", "batch_size", "weight_decay",
@@ -274,6 +295,21 @@ def coordinate_descent(model_name, data, feature_cols, output_dim, device):
         cache[k] = result
         return result
 
+    # === 网格搜索（小范围穷举）===
+    if SEARCH_METHOD == "grid":
+        combos = grid_combos(model_name)
+        best = None
+        for combo in combos:
+            res = evaluate({"lookback": LOOKBACK, **combo}, "grid")
+            better = best is None or res["mean_nrmse"] < best["mean_nrmse"] - 1e-9 or (
+                abs(res["mean_nrmse"] - best["mean_nrmse"]) <= 1e-9 and res["val_loss"] < best["val_loss"])
+            if better:
+                best = res
+            print(f"[{MODEL_DISPLAY[model_name]}] grid {len(cache)}/{len(combos)} | "
+                  f"val mean nRMSE={metric_text(res['mean_nrmse'])} | best={metric_text(best['mean_nrmse'])}", flush=True)
+        return best
+
+    # === 分步坐标下降 ===
     current = {"lookback": LOOKBACK, **baseline}
     base_res = evaluate(current, "baseline")
     best = base_res

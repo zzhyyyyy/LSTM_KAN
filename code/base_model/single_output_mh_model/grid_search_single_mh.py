@@ -41,8 +41,8 @@ from common.data_utils import (  # noqa: E402
 from common.metrics_utils import compute_metrics  # noqa: E402
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, predict_scaled_multi, save_loss_history, train_one_model  # noqa: E402
-from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, USE_LOG, build_model  # noqa: E402
-from grid_search_multi_output import BASELINES, PARAM_ORDER, PARAM_COLUMNS, FEATURE_COLS_FN  # noqa: E402
+from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, SEARCH_METHOD, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, USE_LOG, build_model  # noqa: E402
+from grid_search_multi_output import BASELINES, PARAM_ORDER, PARAM_COLUMNS, FEATURE_COLS_FN, grid_combos  # noqa: E402
 
 # USE_LOG 控制目标 log1p+expm1；FEATURE_COLS_FN（由 models.LOG_INPUTS 决定）控制输入是否 log。
 INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
@@ -177,6 +177,18 @@ def coordinate_descent(target, model_name, data, output_dim, device):
         cache[k] = res
         return res
 
+    # === 网格搜索（小范围穷举）===
+    if SEARCH_METHOD == "grid":
+        combos = grid_combos(model_name)
+        best = None
+        for combo in combos:
+            res = evaluate({"lookback": LOOKBACK, **combo}, "grid")
+            if best is None or res["mean_nrmse"] < best["mean_nrmse"] - 1e-9 or (
+                abs(res["mean_nrmse"] - best["mean_nrmse"]) <= 1e-9 and res["val_loss"] < best["val_loss"]):
+                best = res
+        return best
+
+    # === 分步坐标下降 ===
     current = {"lookback": LOOKBACK, **baseline}
     best = evaluate(current, "baseline")
     for pname, candidates in param_order:
