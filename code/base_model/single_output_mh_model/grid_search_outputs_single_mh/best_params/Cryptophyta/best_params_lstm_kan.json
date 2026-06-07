@@ -1,0 +1,46 @@
+{
+  "target": "Cryptophyta",
+  "target_col": "log_Cryptophyta",
+  "model_name": "LSTM_KAN",
+  "model_display": "LSTM-KAN",
+  "feature_cols": [
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta",
+    "pH",
+    "Turbidity",
+    "WT",
+    "precipitation",
+    "DIN",
+    "DIP",
+    "TN",
+    "TP",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "num_layers": 3,
+    "hidden_dim": 256,
+    "kan_hidden_dim": 64,
+    "grid_size": 5,
+    "spline_order": 3,
+    "lr": 0.002,
+    "dropout": 0.1,
+    "batch_size": 64,
+    "weight_decay": 0.0
+  },
+  "best_epoch": 14,
+  "best_validation_val_loss": 0.18166572068418776,
+  "best_validation_mean_nRMSE": 0.4289603949079917,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.3954891257738098,
+    "h2": 0.43014217109127695,
+    "h3": 0.4612498878588884
+  }
+}

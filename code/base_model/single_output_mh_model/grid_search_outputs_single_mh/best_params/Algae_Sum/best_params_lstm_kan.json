@@ -1,0 +1,46 @@
+{
+  "target": "Algae_Sum",
+  "target_col": "log_Algae_Sum",
+  "model_name": "LSTM_KAN",
+  "model_display": "LSTM-KAN",
+  "feature_cols": [
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta",
+    "pH",
+    "Turbidity",
+    "WT",
+    "precipitation",
+    "DIN",
+    "DIP",
+    "TN",
+    "TP",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "num_layers": 2,
+    "hidden_dim": 256,
+    "kan_hidden_dim": 32,
+    "grid_size": 5,
+    "spline_order": 3,
+    "lr": 0.002,
+    "dropout": 0.0,
+    "batch_size": 64,
+    "weight_decay": 0.0
+  },
+  "best_epoch": 4,
+  "best_validation_val_loss": 0.31942117781866164,
+  "best_validation_mean_nRMSE": 0.3528934245562836,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.2865971497793328,
+    "h2": 0.3606075503799027,
+    "h3": 0.4114755735096151
+  }
+}

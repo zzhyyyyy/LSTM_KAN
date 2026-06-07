@@ -1,0 +1,43 @@
+{
+  "target": "Diatoms",
+  "target_col": "log_Diatoms",
+  "model_name": "LSTM_FC",
+  "model_display": "LSTM-FC",
+  "feature_cols": [
+    "Green_Algae",
+    "Cyanobacteria",
+    "Diatoms",
+    "Cryptophyta",
+    "pH",
+    "Turbidity",
+    "WT",
+    "precipitation",
+    "DIN",
+    "DIP",
+    "TN",
+    "TP",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "num_layers": 3,
+    "hidden_dim": 256,
+    "lr": 0.002,
+    "dropout": 0.0,
+    "batch_size": 32,
+    "weight_decay": 0.0
+  },
+  "best_epoch": 8,
+  "best_validation_val_loss": 0.24826442060016451,
+  "best_validation_mean_nRMSE": 0.927672192436973,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.7871176544674208,
+    "h2": 0.9382450661111147,
+    "h3": 1.0576538567323832
+  }
+}
