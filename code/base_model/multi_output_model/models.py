@@ -32,6 +32,19 @@ TARGET_COLS = list(TARGET_COLS_ORDER)
 
 # 目标名 -> 原始数据列名（原始尺度下二者同名，恒等映射；供单输出按目标取列用）。
 TARGET_MAP_RAW = {name: name for name in TARGET_COLS_ORDER}
+# 目标名 -> log1p 数据列名（log 尺度）。
+TARGET_MAP_LOG = {name: f"log_{name}" for name in TARGET_COLS_ORDER}
+
+# ============================================================
+# 尺度开关（方案A）：USE_LOG=True 用 log1p 尺度（log 输入特征 + log 目标 + expm1 反变换）；
+# False 用原始尺度。各管线据此选择 feature 列函数、目标列、反变换函数（及 DynamicWLS 是否 expm1）。
+# 切换 raw<->log 只需改这一个开关并重跑。
+# ============================================================
+USE_LOG = True
+
+# 训练用目标列与“目标名->训练列”映射，随 USE_LOG 切换。
+TARGET_MAP_TRAIN = TARGET_MAP_LOG if USE_LOG else TARGET_MAP_RAW
+TARGET_TRAIN_COLS = [TARGET_MAP_TRAIN[name] for name in TARGET_COLS_ORDER]
 
 # SHAP 去自身特征用：原始尺度下目标的“自身特征”就是同名原始列。
 # 四个底层藻同名列在输入中（会被剔除）；Algae_Sum 不在输入特征中，匹配不到、无影响。

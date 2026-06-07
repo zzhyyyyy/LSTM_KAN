@@ -35,6 +35,7 @@ from common.data_utils import (  # noqa: E402
     append_csv_row,
     ensure_dir,
     get_raw_feature_cols,
+    inverse_log_targets,
     inverse_targets,
     load_data_splits,
     prepare_multi_horizon_data,
@@ -47,10 +48,14 @@ from models import (  # noqa: E402
     KAN,
     MODEL_DISPLAY,
     MODEL_STEM,
-    TARGET_COLS,
     TARGET_COLS_ORDER,
+    TARGET_TRAIN_COLS,
+    USE_LOG,
     build_model,
 )
+
+# 方案A：输入特征始终原始尺度；USE_LOG 只切换“目标 log1p + expm1 反变换”，协调仍在原始尺度。
+INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
 
 
 DATA_DIR = BASE_DIR / "data"
@@ -173,8 +178,8 @@ def evaluate_split(model, split, y_scaler, batch_size, device, output_dim):
     n_h, n_k = len(HORIZONS), len(TARGET_COLS_ORDER)
     pred = predict_scaled_multi(model, split["X"], batch_size, device, output_dim).reshape(-1, n_h, n_k)
     true = split["y"].reshape(-1, n_h, n_k)
-    pred_raw = np.stack([inverse_targets(pred[:, h, :], y_scaler) for h in range(n_h)], axis=1)
-    true_raw = np.stack([inverse_targets(true[:, h, :], y_scaler) for h in range(n_h)], axis=1)
+    pred_raw = np.stack([INVERSE_FN(pred[:, h, :], y_scaler) for h in range(n_h)], axis=1)
+    true_raw = np.stack([INVERSE_FN(true[:, h, :], y_scaler) for h in range(n_h)], axis=1)
     per = {}
     for h in range(n_h):
         for k, name in enumerate(TARGET_COLS_ORDER):
@@ -302,7 +307,7 @@ def run_model(model_name, data, feature_cols, output_dim, device) -> list[dict]:
     val_per = final["per"]
     payload = {
         "model_name": model_name, "model_display": MODEL_DISPLAY[model_name],
-        "target_names": TARGET_COLS_ORDER, "target_cols": TARGET_COLS,
+        "target_names": TARGET_COLS_ORDER, "target_cols": TARGET_TRAIN_COLS,
         "feature_cols": feature_cols, "horizons": HORIZONS,
         "best_hyperparameters": params, "best_epoch": final["best_epoch"],
         "best_validation_val_loss": final["val_loss"],
@@ -345,7 +350,7 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
     feature_cols = get_raw_feature_cols(train_df, date_col)
-    data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_COLS, LOOKBACK, HORIZONS, date_col)
+    data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_TRAIN_COLS, LOOKBACK, HORIZONS, date_col)
     output_dim = data["train"]["y"].shape[1]  # H*K
     print(f"Data: {actual_data_dir} | device={device} | raw features={len(feature_cols)} | "
           f"targets={len(TARGET_COLS_ORDER)} | horizons={HORIZONS} | output_dim={output_dim} | smoke={SMOKE}", flush=True)

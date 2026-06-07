@@ -35,6 +35,7 @@ for _p in (PROJECT_DIR, SCRIPT_DIR):
 from base_model.common.data_utils import (  # noqa: E402
     ensure_dir,
     get_raw_feature_cols,
+    inverse_log_targets,
     inverse_targets,
     load_data_splits,
     prepare_multi_horizon_data,
@@ -42,7 +43,10 @@ from base_model.common.data_utils import (  # noqa: E402
 from base_model.common.metrics_utils import compute_metrics  # noqa: E402
 from base_model.common.seed_utils import set_seed  # noqa: E402
 from base_model.common.train_utils import save_loss_history  # noqa: E402
-from base_model.multi_output_model.models import HORIZONS, KAN, TARGET_COLS_ORDER, build_model  # noqa: E402
+from base_model.multi_output_model.models import HORIZONS, KAN, TARGET_COLS_ORDER, USE_LOG, build_model  # noqa: E402
+
+# 方案A：目标 log1p 时反变换/基座反标准化用 expm1；协调在原始尺度。
+INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
 
 from frozen_dynamic_wls import (  # noqa: E402
     ALL_TARGETS,
@@ -103,7 +107,8 @@ class DynamicHierMultiHorizonModel(nn.Module):
         base_scaled = self.base(x).view(n, self.n_h, self.n_k)  # 模型原生列序(标准化)
         base_scaled = base_scaled.index_select(2, self.recon_from_model)  # top-first
         # 原始尺度：反标准化但不 expm1
-        base_pred = base_scaled * self.target_scales.view(1, 1, -1) + self.target_means.view(1, 1, -1)
+        base_log = base_scaled * self.target_scales.view(1, 1, -1) + self.target_means.view(1, 1, -1)
+        base_pred = torch.expm1(base_log) if USE_LOG else base_log  # 方案A：log 目标先 expm1 回原始尺度
         flat = base_pred.reshape(n * self.n_h, self.n_k)
         weights = self.weight_mlp(flat)
         reconciled_flat, _ = self.reconcile(flat, weights)
@@ -132,7 +137,7 @@ def load_best_info() -> dict:
 def true_top_first(data, dataset, n_h, n_k, y_scaler) -> np.ndarray:
     """标准化目标 -> 原始 -> top-first，返回 (N,H,K)。"""
     std = data[dataset]["y"].reshape(-1, n_h, n_k)
-    raw = np.stack([inverse_targets(std[:, h, :], y_scaler) for h in range(n_h)], axis=1)  # model order
+    raw = np.stack([INVERSE_FN(std[:, h, :], y_scaler) for h in range(n_h)], axis=1)  # model order
     return raw[:, :, RECON_FROM_MODEL].astype(np.float32)  # top-first
 
 

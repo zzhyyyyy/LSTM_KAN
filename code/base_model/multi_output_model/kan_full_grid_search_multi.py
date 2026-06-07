@@ -34,7 +34,7 @@ from common.data_utils import (  # noqa: E402
 )
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, save_loss_history, train_one_model  # noqa: E402
-from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS, TARGET_COLS_ORDER, build_model  # noqa: E402
+from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_TRAIN_COLS, TARGET_COLS_ORDER, build_model  # noqa: E402
 from grid_search_multi_output import (  # noqa: E402
     METRIC_COLUMNS,
     PARAM_COLUMNS,
@@ -166,7 +166,7 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
     feature_cols = get_raw_feature_cols(train_df, date_col)
-    data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_COLS, LOOKBACK, HORIZONS, date_col)
+    data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_TRAIN_COLS, LOOKBACK, HORIZONS, date_col)
     output_dim = data["train"]["y"].shape[1]
     input_dim = data["train"]["X"].shape[1] * data["train"]["X"].shape[2]  # 展平
     print(f"Data: {actual_data_dir} | device={device} | raw features={len(feature_cols)} | "
@@ -180,7 +180,7 @@ def main() -> None:
     val_per = final["per"]
     payload = {
         "model_name": MODEL_NAME, "model_display": MODEL_DISPLAY[MODEL_NAME],
-        "target_names": TARGET_COLS_ORDER, "target_cols": TARGET_COLS,
+        "target_names": TARGET_COLS_ORDER, "target_cols": TARGET_TRAIN_COLS,
         "feature_cols": feature_cols, "horizons": HORIZONS,
         "best_hyperparameters": params, "best_epoch": final["best_epoch"],
         "best_validation_val_loss": final["val_loss"], "best_validation_mean_nRMSE": final["mean_nrmse"],

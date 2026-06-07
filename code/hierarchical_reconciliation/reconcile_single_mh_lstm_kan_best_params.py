@@ -26,6 +26,7 @@ for _p in (PROJECT_DIR, SCRIPT_DIR):
 from base_model.common.data_utils import (  # noqa: E402
     ensure_dir,
     get_raw_feature_cols,
+    inverse_log_targets,
     inverse_targets,
     load_data_splits,
     prepare_multi_horizon_data,
@@ -33,7 +34,10 @@ from base_model.common.data_utils import (  # noqa: E402
 from base_model.common.metrics_utils import compute_metrics  # noqa: E402
 from base_model.common.seed_utils import set_seed  # noqa: E402
 from base_model.common.train_utils import predict_scaled_multi  # noqa: E402
-from base_model.multi_output_model.models import HORIZONS, KAN, TARGET_MAP_RAW, build_model  # noqa: E402
+from base_model.multi_output_model.models import HORIZONS, KAN, TARGET_MAP_RAW, USE_LOG, build_model  # noqa: E402
+
+# 方案A：目标 log1p 时反变换用 expm1；协调在原始尺度。
+INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
 
 from reconcile_single_lstm_kan_best_params import (  # noqa: E402
     ALL_TARGETS,
@@ -74,8 +78,8 @@ def load_target_outputs(target, train_df, val_df, test_df, date_col, device):
     for split in ["val", "test"]:
         pred = predict_scaled_multi(model, data[split]["X"], params["batch_size"], device, len(HORIZONS))  # (N,H)
         true = data[split]["y"]
-        pred_raw = np.stack([inverse_targets(pred[:, [h]], data["y_scaler"])[:, 0] for h in range(len(HORIZONS))], axis=1)
-        true_raw = np.stack([inverse_targets(true[:, [h]], data["y_scaler"])[:, 0] for h in range(len(HORIZONS))], axis=1)
+        pred_raw = np.stack([INVERSE_FN(pred[:, [h]], data["y_scaler"])[:, 0] for h in range(len(HORIZONS))], axis=1)
+        true_raw = np.stack([INVERSE_FN(true[:, [h]], data["y_scaler"])[:, 0] for h in range(len(HORIZONS))], axis=1)
         out[split] = {"pred": pred_raw, "true": true_raw, "dates": data[split]["dates"]}  # (N,H)
     return out
 

@@ -1,7 +1,9 @@
 # 浮游植物类群/群落结构 层次预测 —— 代码说明（`code/`）
 
 基于分层深度学习的藻类群落结构一致性预报。整体流程：
-**数据预处理 → 基础模型（单输出·多步·原始尺度）→ 层次协调 → 动态权重端到端协调（DynamicWLS）→ SHAP 可解释性 → 可视化（R）**。
+**数据预处理 → 基础模型（单输出·多步·目标 log1p）→ 层次协调 → 动态权重端到端协调（DynamicWLS）→ SHAP 可解释性 → 可视化（R）**。
+
+> **尺度（方案A）**：对 5 个藻类**目标**做 log1p、**输入保持原始**，预测后 `expm1` 还原到原始尺度再做协调/算指标（由 `base_model/multi_output_model/models.py` 的 `USE_LOG` 开关控制，默认 True）。改用 log 的原因：测试年 Green_Algae 均值骤降（3.8→0.5），原始尺度下其 nRMSE 被小分母放大到 ~3.7，log1p 可显著压低该测试误差。
 
 层次结构（加和约束）：`Algae_Sum = Green_Algae + Cyanobacteria + Diatoms + Cryptophyta`。
 
@@ -15,8 +17,8 @@
 
 | 项目 | 设定 |
 |---|---|
-| 尺度 | **原始尺度**（不做 log），仅 StandardScaler 标准化；预测只反标准化、不 expm1 |
-| 输入特征 | **13 个原始特征**：4 底层藻（自回归）+ pH/Turbidity/WT/precipitation/DIN/DIP/TN/TP/NPR；**不含 Algae_Sum**（避免信息泄漏） |
+| 尺度 | **方案A（默认 `models.USE_LOG=True`）**：对 5 个目标做 **log1p**（`z=log(1+y)`）再标准化；**输入特征保持原始**；预测先反标准化再 **expm1**（`ŷ=exp(ẑ)−1`）还原到原始尺度；**层次协调与指标都在原始尺度**。设 `USE_LOG=False` 即切回纯原始尺度。改一个开关即可全链路切换 |
+| 输入特征 | **13 个原始特征（始终原始，不 log）**：4 底层藻（自回归）+ pH/Turbidity/WT/precipitation/DIN/DIP/TN/TP/NPR；**不含 Algae_Sum**（避免信息泄漏） |
 | 输出目标 | **5 个**：Green_Algae、Cyanobacteria、Diatoms、Cryptophyta、**Algae_Sum** |
 | 预测方式 | **直接多步**（非递归）：一次前向输出 `t+1/t+2/t+3` |
 | **输出粒度** | **★主线＝单输出**：每个目标一个模型 → 4 架构 × 5 目标 = **20 个模型**，每个输出该目标的 `t+1/t+2/t+3`（3 个值）。**对比＝多输出**：4 个模型，每个一次输出 `3×5=15` 个值 |

@@ -34,7 +34,7 @@ from common.data_utils import (  # noqa: E402
 )
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, save_loss_history, train_one_model  # noqa: E402
-from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_RAW, build_model  # noqa: E402
+from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, build_model  # noqa: E402
 from kan_full_grid_search_multi import BASELINE as KAN_BASELINE, PARAM_ORDER as KAN_PARAM_ORDER  # noqa: E402
 from grid_search_single_mh import (  # noqa: E402
     PARAM_COLUMNS,
@@ -151,7 +151,7 @@ def main():
 
     all_rows = []
     for target in TARGETS:
-        data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, [TARGET_MAP_RAW[target]], LOOKBACK, HORIZONS, date_col)
+        data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, [TARGET_MAP_TRAIN[target]], LOOKBACK, HORIZONS, date_col)
         input_dim = data["train"]["X"].shape[1] * data["train"]["X"].shape[2]
         print(f"\n=== {target} / KAN (staged) === input_dim={input_dim}", flush=True)
         final = coordinate_descent(target, data, input_dim, output_dim, device)
@@ -160,7 +160,7 @@ def main():
         ensure_dir(paths["best_model"].parent)
         torch.save(final["best_state"], paths["best_model"])
         per = final["per"]
-        payload = {"target": target, "target_col": TARGET_MAP_RAW[target], "model_name": MODEL_NAME,
+        payload = {"target": target, "target_col": TARGET_MAP_TRAIN[target], "model_name": MODEL_NAME,
                    "model_display": MODEL_DISPLAY[MODEL_NAME], "feature_cols": feature_cols, "horizons": HORIZONS,
                    "best_hyperparameters": params, "best_epoch": final["best_epoch"],
                    "best_validation_val_loss": final["val_loss"], "best_validation_mean_nRMSE": final["mean_nrmse"],

@@ -33,6 +33,7 @@ from common.data_utils import (  # noqa: E402
     append_csv_row,
     ensure_dir,
     get_raw_feature_cols,
+    inverse_log_targets,
     inverse_targets,
     load_data_splits,
     prepare_multi_horizon_data,
@@ -40,8 +41,11 @@ from common.data_utils import (  # noqa: E402
 from common.metrics_utils import compute_metrics  # noqa: E402
 from common.seed_utils import set_seed  # noqa: E402
 from common.train_utils import make_loader, predict_scaled_multi, save_loss_history, train_one_model  # noqa: E402
-from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_RAW, build_model  # noqa: E402
+from models import HORIZONS, KAN, MODEL_DISPLAY, MODEL_STEM, TARGET_COLS_ORDER, TARGET_MAP_TRAIN, USE_LOG, build_model  # noqa: E402
 from grid_search_multi_output import BASELINES, PARAM_ORDER, PARAM_COLUMNS  # noqa: E402
+
+# 方案A：输入特征始终原始；USE_LOG 只切换“目标 log1p + expm1 反变换”。
+INVERSE_FN = inverse_log_targets if USE_LOG else inverse_targets
 
 
 DATA_DIR = BASE_DIR / "data"
@@ -109,8 +113,8 @@ def evaluate_split(model, split, y_scaler, batch_size, device, output_dim):
     true = split["y"]  # (N,H)
     per, pred_raw, true_raw = {}, np.zeros_like(pred), np.zeros_like(true)
     for h in range(len(HORIZONS)):
-        p = inverse_targets(pred[:, [h]], y_scaler)[:, 0]
-        t = inverse_targets(true[:, [h]], y_scaler)[:, 0]
+        p = INVERSE_FN(pred[:, [h]], y_scaler)[:, 0]
+        t = INVERSE_FN(true[:, [h]], y_scaler)[:, 0]
         pred_raw[:, h], true_raw[:, h] = p, t
         per[h] = compute_metrics(t, p)
     return per, pred_raw, true_raw
@@ -196,7 +200,7 @@ def run_target_model(target, model_name, data, output_dim, device):
     torch.save(final["best_state"], paths["best_model"])
     per = final["per"]
     payload = {
-        "target": target, "target_col": TARGET_MAP_RAW[target], "model_name": model_name,
+        "target": target, "target_col": TARGET_MAP_TRAIN[target], "model_name": model_name,
         "model_display": MODEL_DISPLAY[model_name], "feature_cols": data["feature_cols"],
         "horizons": HORIZONS, "best_hyperparameters": params, "best_epoch": final["best_epoch"],
         "best_validation_val_loss": final["val_loss"], "best_validation_mean_nRMSE": final["mean_nrmse"],
@@ -232,7 +236,7 @@ def main():
 
     all_rows = []
     for target in TARGETS:
-        data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, [TARGET_MAP_RAW[target]], LOOKBACK, HORIZONS, date_col)
+        data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, [TARGET_MAP_TRAIN[target]], LOOKBACK, HORIZONS, date_col)
         data["feature_cols"] = feature_cols
         for model_name in MODELS_TO_RUN:
             print(f"\n=== {target} / {MODEL_DISPLAY[model_name]} (staged) ===", flush=True)

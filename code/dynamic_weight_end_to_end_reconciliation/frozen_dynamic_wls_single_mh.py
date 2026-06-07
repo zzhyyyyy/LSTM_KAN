@@ -35,7 +35,7 @@ from base_model.common.data_utils import (  # noqa: E402
 )
 from base_model.common.seed_utils import set_seed  # noqa: E402
 from base_model.common.train_utils import save_loss_history  # noqa: E402
-from base_model.multi_output_model.models import HORIZONS, KAN, TARGET_COLS, build_model  # noqa: E402
+from base_model.multi_output_model.models import HORIZONS, KAN, TARGET_TRAIN_COLS, USE_LOG, build_model  # noqa: E402
 
 from frozen_dynamic_wls import (  # noqa: E402
     MLP_GRID, SOLVE_RIDGE, DynamicWeightMLP, build_summing_matrix,
@@ -77,7 +77,8 @@ class DynamicHierSingleMHModel(nn.Module):
     def forward(self, x):
         scaled = [b(x) for b in self.branches]  # each (N,H)，已是 top-first 顺序
         base_scaled = torch.stack(scaled, dim=2)  # (N,H,K)
-        base_pred = base_scaled * self.target_scales.view(1, 1, -1) + self.target_means.view(1, 1, -1)
+        base_log = base_scaled * self.target_scales.view(1, 1, -1) + self.target_means.view(1, 1, -1)
+        base_pred = torch.expm1(base_log) if USE_LOG else base_log  # 方案A：log 目标先 expm1 回原始尺度
         flat = base_pred.reshape(-1, self.n_k)
         weights = self.weight_mlp(flat)
         recon_flat, _ = self.reconcile(flat, weights)
@@ -129,7 +130,7 @@ def main():
     train_df, val_df, test_df, actual_data_dir, date_col = load_data_splits(DATA_DIR, TRAIN_CSV, VAL_CSV, TEST_CSV)
     feature_cols = get_raw_feature_cols(train_df, date_col)
     # 联合准备一次：拿到共享 X、日期、K 列 y_scaler（其各列统计量与各单输出分支一致）。
-    data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_COLS, 30, HORIZONS, date_col)
+    data = prepare_multi_horizon_data(train_df, val_df, test_df, feature_cols, TARGET_TRAIN_COLS, 30, HORIZONS, date_col)
     n_h, n_k = len(HORIZONS), len(ALL_TARGETS)
     y_scaler = data["y_scaler"]
     # batch_size 取各分支的最小值，保证都能整除

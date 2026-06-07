@@ -106,6 +106,30 @@ def get_raw_feature_cols(df: pd.DataFrame, date_col: str | None = None) -> list[
     return [col for col in preferred_cols if col in df.columns and col != date_col]
 
 
+def get_log_feature_cols(df: pd.DataFrame, date_col: str | None = None) -> list[str]:
+    """
+    方案A：log1p 尺度输入特征。对偏态变量(藻类、浊度、DIP、TP、降水、氮磷比)用 log1p，
+    pH/WT/DIN/TN 保留原始；按文档**排除 Algae_Sum**（不含 log_Algae_Sum）。共 13 个，顺序固定。
+    等价于 get_clean_feature_cols 去掉 log_Algae_Sum。
+    """
+    preferred_cols = [
+        "log_Green_Algae",
+        "log_Cyanobacteria",
+        "log_Diatoms",
+        "log_Cryptophyta",
+        "log_Turbidity",
+        "log_DIP",
+        "log_TP",
+        "log_precipitation",
+        "log_NPR",
+        "pH",
+        "WT",
+        "DIN",
+        "TN",
+    ]
+    return [col for col in preferred_cols if col in df.columns and col != date_col]
+
+
 def infer_feature_cols(
     train_df: pd.DataFrame,
     explicit_feature_cols: Iterable[str] | None = None,
