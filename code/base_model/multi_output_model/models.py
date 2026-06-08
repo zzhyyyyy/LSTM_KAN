@@ -50,8 +50,8 @@ TARGET_TRAIN_COLS = [TARGET_MAP_TRAIN[name] for name in TARGET_COLS_ORDER]
 # True: 用 get_log_feature_cols（对偏态输入做 log1p）；False: get_raw_feature_cols（输入全原始）。
 LOG_INPUTS = True
 
-# 超参数搜索方式："grid"=小范围网格穷举（默认）；"coordinate"=分步坐标下降。
-SEARCH_METHOD = "grid"
+# 超参数搜索方式："coordinate"=分步坐标下降（当前）；"grid"=小范围网格穷举。
+SEARCH_METHOD = "coordinate"
 
 # SHAP 去自身特征用：原始尺度下目标的“自身特征”就是同名原始列。
 # 四个底层藻同名列在输入中（会被剔除）；Algae_Sum 不在输入特征中，匹配不到、无影响。

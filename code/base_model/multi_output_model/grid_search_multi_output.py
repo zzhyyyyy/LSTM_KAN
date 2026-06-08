@@ -81,43 +81,43 @@ if SMOKE:
 
 MODELS_TO_RUN = ["LSTM_FC", "LSTM_MLP", "LSTM_KAN"]
 
-# 分步优化的基线配置（每个值都必须落在对应候选列表里，保证坐标下降单调不增）。
+# 分步优化第一阶段固定的基线配置（用户指定 BASE_*；每个值都必须落在 PARAM_ORDER 候选里，保证坐标下降单调不增）。
 BASELINES = {
-    "LSTM_FC": {"num_layers": 1, "hidden_dim": 256, "lr": 0.002, "dropout": 0.0, "batch_size": 64, "weight_decay": 0.0},
-    "LSTM_MLP": {"num_layers": 1, "hidden_dim": 256, "mlp_num_layers": 1, "mlp_hidden_dim": 64, "lr": 0.002, "dropout": 0.0, "batch_size": 64, "weight_decay": 0.0},
-    "LSTM_KAN": {"num_layers": 1, "hidden_dim": 256, "kan_hidden_dim": 64, "grid_size": 5, "spline_order": 3, "lr": 0.002, "dropout": 0.0, "batch_size": 64, "weight_decay": 0.0},
+    "LSTM_FC": {"num_layers": 2, "hidden_dim": 256, "lr": 0.002, "dropout": 0.1, "batch_size": 32, "weight_decay": 1e-4},
+    "LSTM_MLP": {"num_layers": 2, "hidden_dim": 256, "mlp_num_layers": 1, "mlp_hidden_dim": 64, "lr": 0.002, "dropout": 0.1, "batch_size": 32, "weight_decay": 1e-4},
+    "LSTM_KAN": {"num_layers": 2, "hidden_dim": 256, "kan_hidden_dim": 64, "grid_size": 5, "spline_order": 2, "lr": 0.002, "dropout": 0.1, "batch_size": 32, "weight_decay": 1e-4},
 }
 
-# 坐标下降调参顺序：结构(层数/隐藏单元/各头结构) 与 学习率优先，再正则与 batch。
+# 坐标下降调参顺序与候选范围（SEARCH_PLAN：扩大 lr/hidden_dim/num_layers/weight_decay，其余沿用原范围）。
 PARAM_ORDER = {
     "LSTM_FC": [
-        ("num_layers", [1, 2, 3]),
-        ("hidden_dim", [128, 256]),
-        ("lr", [0.001, 0.002, 0.003]),
+        ("num_layers", [1, 2, 3, 4]),
+        ("hidden_dim", [64, 128, 256, 384]),
+        ("lr", [0.0005, 0.001, 0.002, 0.003]),
         ("dropout", [0.0, 0.1, 0.2]),
         ("batch_size", [32, 64]),
-        ("weight_decay", [0.0, 1e-4]),
+        ("weight_decay", [0.0, 1e-5, 1e-4]),
     ],
     "LSTM_MLP": [
-        ("num_layers", [1, 2, 3]),
-        ("hidden_dim", [128, 256]),
+        ("num_layers", [1, 2, 3, 4]),
+        ("hidden_dim", [64, 128, 256, 384]),
         ("mlp_num_layers", [1, 2]),
         ("mlp_hidden_dim", [32, 64, 128]),
-        ("lr", [0.001, 0.002, 0.003]),
+        ("lr", [0.0005, 0.001, 0.002, 0.003]),
         ("dropout", [0.0, 0.1, 0.2]),
         ("batch_size", [32, 64]),
-        ("weight_decay", [0.0, 1e-4]),
+        ("weight_decay", [0.0, 1e-5, 1e-4]),
     ],
     "LSTM_KAN": [
-        ("num_layers", [1, 2, 3]),
-        ("hidden_dim", [128, 256]),
+        ("num_layers", [1, 2, 3, 4]),
+        ("hidden_dim", [64, 128, 256, 384]),
         ("kan_hidden_dim", [32, 64, 128]),
         ("grid_size", [3, 5, 7]),
         ("spline_order", [2, 3]),
-        ("lr", [0.001, 0.002, 0.003]),
+        ("lr", [0.0005, 0.001, 0.002, 0.003]),
         ("dropout", [0.0, 0.1, 0.2]),
         ("batch_size", [32, 64]),
-        ("weight_decay", [0.0, 1e-4]),
+        ("weight_decay", [0.0, 1e-5, 1e-4]),
     ],
 }
 

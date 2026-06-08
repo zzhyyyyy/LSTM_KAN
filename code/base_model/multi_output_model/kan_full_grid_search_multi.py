@@ -65,16 +65,18 @@ if SMOKE:
     MAX_EPOCHS = 2
     PATIENCE = 2
 
+# 纯 KAN 第一阶段基线（用户未单列 BASE_KAN，这里与 LSTM 家族同风格：dropout0.1/batch32/wd1e-4）。
 BASELINE = {"lookback": LOOKBACK, "kan_hidden_dim": 64, "grid_size": 5, "spline_order": 3,
-            "lr": 0.002, "dropout": 0.0, "batch_size": 64, "weight_decay": 0.0}
+            "lr": 0.002, "dropout": 0.1, "batch_size": 32, "weight_decay": 1e-4}
+# lr / weight_decay 按 SEARCH_PLAN 扩大；KAN 无 hidden_dim/num_layers，其余沿用原范围。
 PARAM_ORDER = [
     ("kan_hidden_dim", [32, 64, 128]),
     ("grid_size", [3, 5, 7]),
     ("spline_order", [2, 3]),
-    ("lr", [0.001, 0.002, 0.003]),
+    ("lr", [0.0005, 0.001, 0.002, 0.003]),
     ("dropout", [0.0, 0.1, 0.2]),
     ("batch_size", [32, 64]),
-    ("weight_decay", [0.0, 1e-4]),
+    ("weight_decay", [0.0, 1e-5, 1e-4]),
 ]
 # 小范围网格（SEARCH_METHOD="grid"）：2×2×2=8 组，其余固定在 BASELINE。
 GRID_SMALL = {"kan_hidden_dim": [32, 64], "grid_size": [3, 5], "lr": [0.001, 0.002]}
