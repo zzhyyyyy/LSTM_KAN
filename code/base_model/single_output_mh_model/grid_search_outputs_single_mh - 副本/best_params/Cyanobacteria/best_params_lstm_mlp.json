@@ -1,0 +1,45 @@
+{
+  "target": "Cyanobacteria",
+  "target_col": "log_Cyanobacteria",
+  "model_name": "LSTM_MLP",
+  "model_display": "LSTM-MLP",
+  "feature_cols": [
+    "log_Green_Algae",
+    "log_Cyanobacteria",
+    "log_Diatoms",
+    "log_Cryptophyta",
+    "log_Turbidity",
+    "log_DIP",
+    "log_TP",
+    "log_precipitation",
+    "pH",
+    "WT",
+    "DIN",
+    "TN",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "num_layers": 4,
+    "hidden_dim": 256,
+    "mlp_num_layers": 1,
+    "mlp_hidden_dim": 64,
+    "lr": 0.002,
+    "dropout": 0.0,
+    "batch_size": 32,
+    "weight_decay": 0.0001
+  },
+  "best_epoch": 5,
+  "best_validation_val_loss": 0.2437034167704128,
+  "best_validation_mean_nRMSE": 0.32977711241060725,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.2545931377720015,
+    "h2": 0.3432779691341508,
+    "h3": 0.3914602303256694
+  }
+}

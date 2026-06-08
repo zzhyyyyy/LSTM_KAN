@@ -1,0 +1,45 @@
+{
+  "target": "Diatoms",
+  "target_col": "log_Diatoms",
+  "model_name": "LSTM_MLP",
+  "model_display": "LSTM-MLP",
+  "feature_cols": [
+    "log_Green_Algae",
+    "log_Cyanobacteria",
+    "log_Diatoms",
+    "log_Cryptophyta",
+    "log_Turbidity",
+    "log_DIP",
+    "log_TP",
+    "log_precipitation",
+    "pH",
+    "WT",
+    "DIN",
+    "TN",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "num_layers": 2,
+    "hidden_dim": 256,
+    "mlp_num_layers": 1,
+    "mlp_hidden_dim": 64,
+    "lr": 0.002,
+    "dropout": 0.1,
+    "batch_size": 32,
+    "weight_decay": 0.0001
+  },
+  "best_epoch": 7,
+  "best_validation_val_loss": 0.19168087077282725,
+  "best_validation_mean_nRMSE": 0.833716882707991,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.6867078508056682,
+    "h2": 0.8560335865915121,
+    "h3": 0.9584092107267927
+  }
+}

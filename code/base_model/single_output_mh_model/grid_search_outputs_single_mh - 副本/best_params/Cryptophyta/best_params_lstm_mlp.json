@@ -1,0 +1,45 @@
+{
+  "target": "Cryptophyta",
+  "target_col": "log_Cryptophyta",
+  "model_name": "LSTM_MLP",
+  "model_display": "LSTM-MLP",
+  "feature_cols": [
+    "log_Green_Algae",
+    "log_Cyanobacteria",
+    "log_Diatoms",
+    "log_Cryptophyta",
+    "log_Turbidity",
+    "log_DIP",
+    "log_TP",
+    "log_precipitation",
+    "pH",
+    "WT",
+    "DIN",
+    "TN",
+    "NPR"
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ],
+  "best_hyperparameters": {
+    "lookback": 30,
+    "num_layers": 3,
+    "hidden_dim": 256,
+    "mlp_num_layers": 2,
+    "mlp_hidden_dim": 64,
+    "lr": 0.002,
+    "dropout": 0.2,
+    "batch_size": 32,
+    "weight_decay": 1e-05
+  },
+  "best_epoch": 20,
+  "best_validation_val_loss": 0.16465041307466372,
+  "best_validation_mean_nRMSE": 0.4123489067421405,
+  "best_validation_per_horizon_nRMSE": {
+    "h1": 0.352673417003167,
+    "h2": 0.42065085054246576,
+    "h3": 0.4637224526807887
+  }
+}
